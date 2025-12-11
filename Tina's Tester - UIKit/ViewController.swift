@@ -11,7 +11,12 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        view.backgroundColor = .white
+
+        let cityVC = CitySearchViewController()
+        let navController = UINavigationController(rootViewController: cityVC)
+        navController.modalPresentationStyle = .fullScreen
+        self.present(navController, animated: true)
     }
 
 
