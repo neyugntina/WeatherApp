@@ -85,7 +85,7 @@ extension CitySearchViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
 
-        let isFavorite = viewModel.favorites.contains(where: { $0.name == city.name && $0.country == city.country })
+        let isFavorite = viewModel.favorites.contains { $0.lat == city.lat && $0.lon == city.lon }
         cell.configure(with: "\(city.name), \(city.state ?? ""), \(city.country)", isFavorite: isFavorite)
         cell.starTapped = { [weak self] in
             guard let self = self else { return }

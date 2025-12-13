@@ -98,7 +98,11 @@ final class CitySearchViewModel {
     func addToFavorites(_ city: City) {
         // check if exists
         let request: NSFetchRequest<FavoriteCities> = FavoriteCities.fetchRequest()
-        request.predicate = NSPredicate(format: "name == %@ AND country == %@", city.name, city.country)
+        request.predicate = NSPredicate(
+            format: "lat == %lf AND lon == %lf",
+            city.lat,
+            city.lon
+        )
         if let existing = try? context.fetch(request), !existing.isEmpty {
             return
         }
@@ -119,7 +123,11 @@ final class CitySearchViewModel {
 
     func removeFromFavorites(_ city: City) {
         let request: NSFetchRequest<FavoriteCities> = FavoriteCities.fetchRequest()
-        request.predicate = NSPredicate(format: "name == %@ AND country == %@", city.name, city.country)
+        request.predicate = NSPredicate(
+            format: "lat == %lf AND lon == %lf",
+            city.lat,
+            city.lon
+        )
         
         if let existing = try? context.fetch(request) {
             for obj in existing {
