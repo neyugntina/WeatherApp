@@ -8,8 +8,6 @@
 import Foundation
 import Combine
 
-// 1. protocol
-
 protocol WeatherAPIServiceProtocol {
     func fetchCityCoordinates(cityName: String) -> AnyPublisher<[City], Error>
     func fetchWeatherByCity(lat: Double, lon: Double) -> AnyPublisher<WeatherModel, Error>
@@ -20,8 +18,7 @@ final class WeatherAPIService: WeatherAPIServiceProtocol {
     private let apiKey = ""
     private let baseURL = "https://api.openweathermap.org/geo/1.0/direct"
     private let getWeatherURL = "https://api.openweathermap.org/data/2.5/weather"
-    
-    // start by building URL
+
     func fetchCityCoordinates(cityName: String) -> AnyPublisher<[City], Error> {
         var components = URLComponents(string: baseURL)
         components?.queryItems = [
@@ -29,8 +26,7 @@ final class WeatherAPIService: WeatherAPIServiceProtocol {
             URLQueryItem(name: "limit", value: "5"),
             URLQueryItem(name: "appid", value: apiKey)
         ]
-        
-        // guard and convert all of that into a url
+
         guard let url = components?.url else {
             return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }

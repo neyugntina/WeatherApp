@@ -12,4 +12,3 @@ struct City: Decodable {
     let country: String
     let state: String?
 }
-
