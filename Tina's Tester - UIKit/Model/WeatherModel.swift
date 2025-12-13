@@ -1,10 +1,3 @@
-//
-//  WeatherModel.swift
-//  Tina's Tester - UIKit
-//
-//  Created by Tina Nguyen on 12/9/25.
-//
-
 struct WeatherModel: Decodable {
     let coord: Coord
     let weather: [Weather]
@@ -23,8 +16,8 @@ struct WeatherModel: Decodable {
 }
 
 struct Coord: Decodable {
-    let lon: String
-    let lat: String
+    let lon: Double
+    let lat: Double
 }
 
 struct Weather: Decodable {
@@ -41,16 +34,18 @@ struct Main: Decodable {
     let temp_max: Double
     let pressure: Int
     let humidity: Int
+    let sea_level: Int?
+    let grnd_level: Int?
 }
 
 struct Wind: Decodable {
     let speed: Double
     let deg: Int
+    let gust: Double?
 }
 
 struct Rain: Decodable {
     let oneHour: Double
-    
     enum CodingKeys: String, CodingKey {
         case oneHour = "1h"
     }
@@ -61,9 +56,9 @@ struct Clouds: Decodable {
 }
 
 struct Sys: Decodable {
-    let type: Int
-    let id: Int
     let country: String
     let sunrise: Int
     let sunset: Int
+    let type: Int?      // optional now
+    let id: Int?        // optional now
 }

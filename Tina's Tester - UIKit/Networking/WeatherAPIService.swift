@@ -12,13 +12,14 @@ import Combine
 
 protocol WeatherAPIServiceProtocol {
     func fetchCityCoordinates(cityName: String) -> AnyPublisher<[City], Error>
-    func fetchWeatherByCity(lat: Double, lon: Double) -> AnyPublisher<[WeatherModel], Error>
+    func fetchWeatherByCity(lat: Double, lon: Double) -> AnyPublisher<WeatherModel, Error>
 }
 
 final class WeatherAPIService: WeatherAPIServiceProtocol {
     
     private let apiKey = ""
     private let baseURL = "https://api.openweathermap.org/geo/1.0/direct"
+    private let getWeatherURL = "https://api.openweathermap.org/data/2.5/weather"
     
     // start by building URL
     func fetchCityCoordinates(cityName: String) -> AnyPublisher<[City], Error> {
@@ -40,8 +41,8 @@ final class WeatherAPIService: WeatherAPIServiceProtocol {
             .eraseToAnyPublisher()
     }
     
-    func fetchWeatherByCity(lat: Double, lon: Double) -> AnyPublisher<[WeatherModel], Error> {
-        var components = URLComponents(string: baseURL)
+    func fetchWeatherByCity(lat: Double, lon: Double) -> AnyPublisher<WeatherModel, Error> {
+        var components = URLComponents(string: getWeatherURL)
         components?.queryItems = [
             URLQueryItem(name: "lat", value: "\(lat)"),
             URLQueryItem(name: "lon", value: "\(lon)"),
@@ -54,7 +55,7 @@ final class WeatherAPIService: WeatherAPIServiceProtocol {
         
         return URLSession.shared.dataTaskPublisher(for: url)
             .map(\.data)
-            .decode(type: [WeatherModel].self, decoder: JSONDecoder())
+            .decode(type: WeatherModel.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
     }
 }

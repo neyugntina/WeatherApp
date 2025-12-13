@@ -9,46 +9,60 @@ import UIKit
 import Combine
 
 class CitySearchViewController: UIViewController {
-    
+
     private let mainView = CitySearchView()
-    private let viewModel = CitySearchViewModel()
+    private let viewModel: CitySearchViewModel
+    weak var coordinator: WeatherCoordinator?
+
     private var cancellables = Set<AnyCancellable>()
-    
-    override func loadView() {
-        self.view = mainView
+
+    init(viewModel: CitySearchViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
     }
-    
+
+    required init?(coder: NSCoder) {
+        fatalError("CitySearchViewController must be created programmatically")
+    }
+
+    override func loadView() {
+        view = mainView
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        setDelegates()
+        setupSearchBar()
+        setupStarButton()
         bindViewModel()
-        viewModel.searchCity(city: "London")
     }
-    
+
+    private func setupStarButton() {
+        let starButton = UIBarButtonItem(
+            image: UIImage(systemName: "star"),
+            style: .plain,
+            target: self,
+            action: #selector(favoritesButtonTapped)
+        )
+        navigationItem.rightBarButtonItem = starButton
+    }
+
+    @objc private func favoritesButtonTapped() {
+        coordinator?.showFavorites()
+    }
+
+    private func setupSearchBar() {
+        mainView.searchBar.delegate = self
+    }
+
     private func setDelegates() {
         mainView.tableView.dataSource = self
         mainView.tableView.delegate = self
-        mainView.searchBar.delegate = self
-        mainView.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        mainView.tableView.register(CityTableViewCell.self, forCellReuseIdentifier: CityTableViewCell.identifier)
     }
 
-    
     private func bindViewModel() {
-        viewModel.$cities
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.mainView.tableView.reloadData()
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$errorMessage
-            .sink { error in
-                if let error = error {
-                    print("Error:", error)
-                }
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$weather
+        viewModel.$results
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.mainView.tableView.reloadData()
@@ -57,28 +71,42 @@ class CitySearchViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
-extension CitySearchViewController: UITableViewDataSource {
+// MARK: - UITableViewDataSource & Delegate
+extension CitySearchViewController: UITableViewDataSource, UITableViewDelegate {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.cities.count
+        viewModel.results.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let city = viewModel.cities[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = "\(city.name), \(city.state ?? ""), \(city.country)"
+
+        let city = viewModel.results[indexPath.row]
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CityTableViewCell.identifier, for: indexPath) as? CityTableViewCell else {
+            return UITableViewCell()
+        }
+
+        let isFavorite = viewModel.favorites.contains(where: { $0.name == city.name && $0.country == city.country })
+        cell.configure(with: "\(city.name), \(city.state ?? ""), \(city.country)", isFavorite: isFavorite)
+        cell.starTapped = { [weak self] in
+            guard let self = self else { return }
+            if isFavorite {
+                self.viewModel.removeFromFavorites(city)
+            } else {
+                self.viewModel.addToFavorites(city)
+            }
+            tableView.reloadRows(at: [indexPath], with: .automatic)
+        }
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let city = viewModel.results[indexPath.row]
+        coordinator?.showWeather(for: city)
     }
 }
 
-// MARK: - UITableViewDelegate
-extension CitySearchViewController: UITableViewDelegate, UISearchBarDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let city = viewModel.cities[indexPath.row]
-        viewModel.searchWeatherByLocation(lat: city.lat, lon: city.lon)
-    }
-    
+extension CitySearchViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        viewModel.searchCity(city: searchText)
+        viewModel.searchText = searchText
     }
 }

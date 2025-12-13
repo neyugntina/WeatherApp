@@ -13,12 +13,12 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
 
-        let cityVC = CitySearchViewController()
-        let navController = UINavigationController(rootViewController: cityVC)
+        let navController = UINavigationController()
+        let coordinator = WeatherCoordinator(navigationController: navController)
+        coordinator.start()
+
         navController.modalPresentationStyle = .fullScreen
         self.present(navController, animated: true)
     }
-
-
 }
 
